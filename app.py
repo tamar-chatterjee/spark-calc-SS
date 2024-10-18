@@ -16,7 +16,10 @@ machine_options = {
 
 @app.route('/')
 def index():
-    return render_template('index.html', machines=machine_options)
+    default_coding_instance = "g5.8xlarge/32 Core/128GB RAM/NVIDIA A10 24 GB VRAM"
+    default_compile_instance = "g5.48xlarge/192 Core/768GB RAM/8x NVIDIA A10 24GB VRAM"
+    return render_template('index.html', machines=machine_options, default_coding_instance=default_coding_instance, default_compile_instance=default_compile_instance)
+    #return render_template('index.html', machines=machine_options)
 
 @app.route('/calculate', methods=['POST'])
 def calculate():

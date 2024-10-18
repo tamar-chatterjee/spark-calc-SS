@@ -190,16 +190,20 @@
             <label for="coding_machine">Coding Instance</label>
             <select id="coding_machine" name="coding_machine">
                 {% for machine, cost in machines.items() %}
-                    <option value="{{ machine }}">{{ machine }} - ${{ cost }}/hr</option>
+                    <option value="{{ machine }}" {% if machine == default_coding_instance %}selected{% endif %}>
+                        {{ machine }} - ${{ cost }}/hr
+                    </option>
                 {% endfor %}
             </select>
         </div>
-
+        
         <div class="form-group">
             <label for="compile_machine">Compiling Instance</label>
             <select id="compile_machine" name="compile_machine">
                 {% for machine, cost in machines.items() %}
-                    <option value="{{ machine }}">{{ machine }} - ${{ cost }}/hr</option>
+                    <option value="{{ machine }}" {% if machine == default_compile_instance %}selected{% endif %}>
+                        {{ machine }} - ${{ cost }}/hr
+                    </option>
                 {% endfor %}
             </select>
         </div>

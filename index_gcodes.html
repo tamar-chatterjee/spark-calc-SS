@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audio Visualizer</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        #controls {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #444;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+        }
+
+        #visualizer {
+            width: 800px;
+            height: 400px;
+            background-color: #111;
+            border: 1px solid #444;
+            margin: 20px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <div class="button-group">
+            <!-- Removed upload buttons -->
+        </div>
+    
+        <div class="button-group">
+            <button id="switchButton">Switch Track</button>
+            <button id="playButton">Play</button>
+            <button id="stopButton">Stop</button>
+        </div>
+    </div>
+    
+    <canvas id="visualizer"></canvas>
+
+    <script src="app.js"></script>
+</body>
+</html>

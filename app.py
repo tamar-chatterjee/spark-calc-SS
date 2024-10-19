@@ -4,15 +4,15 @@ app = Flask(__name__)
 
 # Hardcoded machine cost options for the dropdowns
 machine_options = {
-    "16 Core/64GB RAM/NVIDIA A10 24 GB VRAM" : 3.49,
-    "64 Core/256GB RAM/NVIDIA T4 16 GB VRAM" : 7.49,
-    "32 Core/128GB RAM/NVIDIA A10 24 GB VRAM" : 7.99,
-    "96 Core/768GB RAM/CPU Only" : 17.14,
-    "192 Core/1536GB RAM/CPU Only": 34.28,
-    "96 Core/768GB RAM/4x NVIDIA L40 48GB VRAM": 31.01,
-    "192 Core/768GB RAM/8x NVIDIA L4 24GB VRAM": 35.31,
-    "192 Core/768GB RAM/8x NVIDIA A10 24GB VRAM": 39.99,
-    "192 Core/1536GB RAM/8x NVIDIA L40 48GB VRAM": 62.03,
+    "16 Cores  | 64GB RAM   | NVIDIA A10 24 GB VRAM" : 3.49,
+    "64 Cores  | 256GB RAM  | NVIDIA T4 16 GB VRAM" : 7.49,
+    "32 Cores  | 128GB RAM  | NVIDIA A10 24 GB VRAM" : 7.99,
+    "96 Cores  | 768GB RAM  | CPU Only" : 17.14,
+    "192 Cores | 1536GB RAM | CPU Only": 34.28,
+    "96 Cores  | 768GB RAM  | 4x NVIDIA L40 48GB VRAM": 31.01,
+    "192 Cores | 768GB RAM  | 8x NVIDIA L4 24GB VRAM": 35.31,
+    "192 Cores | 768GB RAM  | 8x NVIDIA A10 24GB VRAM": 39.99,
+    "192 Cores | 1536GB RAM | 8x NVIDIA L40 48GB VRAM": 62.03,
 }
 
 @app.route('/')
@@ -21,8 +21,8 @@ def index():
     coding_machines = list(machine_options.items())[:3]  # First three items
     compile_machines = list(machine_options.items())[3:]  # Items from 4 onwards
 
-    default_coding_instance = "16 Core/64GB RAM/NVIDIA A10 24 GB VRAM"
-    default_compile_instance = "96 Core/768GB RAM/4x NVIDIA L40 48GB VRAM"
+    default_coding_instance = "16 Cores  | 64GB RAM   | NVIDIA A10 24 GB VRAM"
+    default_compile_instance = "96 Cores  | 768GB RAM  | 4x NVIDIA L40 48GB VRAM"
 
     return render_template('index.html', coding_machines=coding_machines, compile_machines=compile_machines, default_coding_instance=default_coding_instance, default_compile_instance=default_compile_instance)
 

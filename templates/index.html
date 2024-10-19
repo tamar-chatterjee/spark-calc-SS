@@ -55,7 +55,8 @@
 
         form input,
         form select {
-            width: calc(100% - 20px);
+            width: 100%;
+            box-sizing: border-box;
             padding: 10px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
@@ -170,7 +171,7 @@
         </div>
 
         <div class="form-group">
-            <label for="annual_maint_costs">Annual Infrastructure Costs</label>
+            <label for="annual_maint_costs">On-Prem Annual Infrastructure Costs</label>
             <input type="number" id="annual_maint_costs" name="annual_maint_costs" value="50000" required>
         </div>
 
@@ -199,7 +200,7 @@
             <select id="coding_machine" name="coding_machine">
                 {% for machine, cost in coding_machines %}
                     <option value="{{ machine }}" data-cost="{{ cost }}" {% if machine == default_coding_instance %}selected{% endif %}>
-                        {{ machine }} - ${{ cost }}/hr
+                        {{ machine }} | ${{ cost }}/hr
                     </option>
                 {% endfor %}
             </select>
@@ -210,7 +211,7 @@
             <select id="compile_machine" name="compile_machine">
                 {% for machine, cost in compile_machines %}
                     <option value="{{ machine }}" data-cost="{{ cost }}" {% if machine == default_compile_instance %}selected{% endif %}>
-                        {{ machine }} - ${{ cost }}/hr
+                        {{ machine }} | ${{ cost }}/hr
                     </option>
                 {% endfor %}
             </select>

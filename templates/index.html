@@ -49,7 +49,6 @@
         form label {
             display: block;
             margin-bottom: 10px;
-            /*font-weight: bold;*/
             color: #ffffff; /* Set labels to white */
             font-size: 14px;
         }
@@ -66,7 +65,6 @@
         }
 
         .form-group {
-            /*display: flex;*/
             justify-content: space-between;
             align-items: center;
         }
@@ -119,8 +117,18 @@
         .results p {
             font-size: 1.1em;
             color: #ffffff; /* White text for results */
-            /*font-weight: bold;*/
             font-size: 18px;
+        }
+
+        /* Checkbox label default and active styles */
+        .smartcompute-label {
+            color: #af69f5; /* Default color when unchecked */
+            font-size: 16px;
+            transition: color 0.3s ease; /* Smooth transition */
+        }
+
+        .smartcompute-label.active {
+            color: #edff79; /* Color when checked */
         }
 
         /* Responsive design */
@@ -189,8 +197,8 @@
         <div class="form-group">
             <label for="coding_machine">Coding Instance</label>
             <select id="coding_machine" name="coding_machine">
-                {% for machine, cost in machines.items() %}
-                    <option value="{{ machine }}" {% if machine == default_coding_instance %}selected{% endif %}>
+                {% for machine, cost in coding_machines %}
+                    <option value="{{ machine }}" data-cost="{{ cost }}" {% if machine == default_coding_instance %}selected{% endif %}>
                         {{ machine }} - ${{ cost }}/hr
                     </option>
                 {% endfor %}
@@ -200,18 +208,27 @@
         <div class="form-group">
             <label for="compile_machine">Compiling Instance</label>
             <select id="compile_machine" name="compile_machine">
-                {% for machine, cost in machines.items() %}
-                    <option value="{{ machine }}" {% if machine == default_compile_instance %}selected{% endif %}>
+                {% for machine, cost in compile_machines %}
+                    <option value="{{ machine }}" data-cost="{{ cost }}" {% if machine == default_compile_instance %}selected{% endif %}>
                         {{ machine }} - ${{ cost }}/hr
                     </option>
                 {% endfor %}
             </select>
         </div>
+        
 
         <input type="submit" value="Calculate">
     </form>
 
     <div class="results">
+        <!-- Checkbox for SmartCompute inside the results section -->
+        <div class="form-group">
+            <label class="smartcompute-label" for="use_smart_compute">
+                <input type="checkbox" id="use_smart_compute" name="use_smart_compute">
+                Use Spark SmartCompute™
+            </label>
+        </div>
+
         <p><strong>Spark Cost:</strong> $<span id="cloud_cost">0.00</span></p>
         <p><strong>On-Prem Cost:</strong> $<span id="on_prem_cost">0.00</span></p>
     </div>
@@ -221,13 +238,19 @@
         const formatCurrency = (amount) => {
             return Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
-
+    
         // Handle form submission and result update
         const submitForm = (event) => {
             event.preventDefault(); // Prevent default form submission behavior
-
+    
+            // Uncheck the SmartCompute checkbox when the form is submitted
+            $('#use_smart_compute').prop('checked', false);
+    
+            // Remove the 'active' class to reset the color of the SmartCompute label
+            $('.smartcompute-label').removeClass('active'); 
+    
             const formData = $('#calculator-form').serialize(); // Serialize the form data
-
+    
             $.ajax({
                 type: 'POST',
                 url: '/calculate',
@@ -236,13 +259,35 @@
                     // Format the results and update the UI
                     $('#cloud_cost').text(formatCurrency(response.cloud_cost));
                     $('#on_prem_cost').text(formatCurrency(response.on_prem_cost));
+    
+                    // Add event listener for real-time toggling of the SmartCompute checkbox
+                    $('#use_smart_compute').on('change', function() {
+                        let smartComputeEnabled = $(this).is(':checked');
+                        let originalCloudCost = response.cloud_cost;
+    
+                        // Apply or remove the 65% discount for compile
+                        let adjustedCloudCost = originalCloudCost;
+                        if (smartComputeEnabled) {
+                            adjustedCloudCost = originalCloudCost * 0.65;
+                        }
+    
+                        $('#cloud_cost').text(formatCurrency(adjustedCloudCost));
+    
+                        // Change label color based on checkbox state
+                        if (smartComputeEnabled) {
+                            $('.smartcompute-label').addClass('active'); // Change to active color
+                        } else {
+                            $('.smartcompute-label').removeClass('active'); // Revert to default color
+                        }
+                    });
                 }
             });
         };
-
+    
         $(document).ready(() => {
             $('#calculator-form').on('submit', submitForm); // Attach the submit handler
         });
     </script>
+    
 </body>
 </html>

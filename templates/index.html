@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spark vs On-Prem Calculator</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Google Fonts: Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Basic form styling */
+        body {
+            font-family: 'Montserrat', sans-serif; /* Updated to Montserrat */
+            margin: 0;
+            padding: 0;
+            background-color: #000000; /* Set the background to black */
+            color: white; /* Set the text color to white for visibility */
+        }
+
+        /* Logo Styling */
+        .logo-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .logo-container img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 10px;
+            color: #ffffff; /* Set header color to white */
+            font-size: 20px;
+        }
+
+        form {
+            background-color: #333333; /* Set the form background to dark gray */
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); /* Light shadow */
+            border: 2px solid #af69f5; /* Add border around form */
+        }
+
+        form label {
+            display: block;
+            margin-bottom: 10px;
+            /*font-weight: bold;*/
+            color: #ffffff; /* Set labels to white */
+            font-size: 14px;
+        }
+
+        form input,
+        form select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #444444; /* Darker input background */
+            color: white; /* White text for input fields */
+        }
+
+        .form-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group label {
+            flex-basis: 35%;
+        }
+
+        .form-group input,
+        .form-group select {
+            flex-basis: 60%;
+        }
+
+        /* Styling the calculate button */
+        form input[type="submit"] {
+            background-color: #af69f5; /* New purple color */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            border-radius: 25px; /* Fully rounded edges */
+            font-size: 16px;
+            width: 50%; /* Reduced width */
+        }
+
+        form input[type="submit"]:hover {
+            background-color: #b47ce9; /* New hover purple color */
+        }
+
+        /* Styling the results section */
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            font-size: 24px;
+        }
+
+        .results {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #333333; /* Dark gray background for results */
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); /* Light shadow */
+            text-align: center;
+            border: 2px solid #af69f5; /* Add border around results */
+        }
+
+        .results p {
+            font-size: 1.1em;
+            color: #ffffff; /* White text for results */
+            /*font-weight: bold;*/
+            font-size: 18px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .form-group {
+                flex-direction: column;
+            }
+
+            .form-group label,
+            .form-group input,
+            .form-group select {
+                width: 100%;
+            }
+
+            form input[type="submit"] {
+                width: 100%; /* Full width on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Logo container -->
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='spark-logo.png') }}" alt="Spark Cloud Studio Logo">
+    </div>
+
+    <h1>Spark vs On-Prem Cost Calculator</h1>
+    
+    <form id="calculator-form">
+        <div class="form-group">
+            <label for="num_devs">Number of Users</label>
+            <input type="number" id="num_devs" name="num_devs" value="16" required>
+        </div>
+
+        <div class="form-group">
+            <label for="on_prem_cost_per_dev">On-Prem Machine Cost/user</label>
+            <input type="number" id="on_prem_cost_per_dev" name="on_prem_cost_per_dev" value="35000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="annual_maint_costs">Annual Infrastructure Costs</label>
+            <input type="number" id="annual_maint_costs" name="annual_maint_costs" value="50000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="coding_percentage">Coding %</label>
+            <input type="number" id="coding_percentage" name="coding_percentage" value="85" required>
+        </div>
+
+        <div class="form-group">
+            <label for="compile_percentage">Compiling %</label>
+            <input type="number" id="compile_percentage" name="compile_percentage" value="15" required>
+        </div>
+
+        <div class="form-group">
+            <label for="hours_per_day">Work Hours/day</label>
+            <input type="number" id="hours_per_day" name="hours_per_day" value="16" required>
+        </div>
+
+        <div class="form-group">
+            <label for="days_per_year">Work Days/year</label>
+            <input type="number" id="days_per_year" name="days_per_year" value="365" required>
+        </div>
+
+        <div class="form-group">
+            <label for="coding_machine">Coding Instance</label>
+            <select id="coding_machine" name="coding_machine">
+                {% for machine, cost in machines.items() %}
+                    <option value="{{ machine }}" {% if machine == default_coding_instance %}selected{% endif %}>
+                        {{ machine }} - ${{ cost }}/hr
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="compile_machine">Compiling Instance</label>
+            <select id="compile_machine" name="compile_machine">
+                {% for machine, cost in machines.items() %}
+                    <option value="{{ machine }}" {% if machine == default_compile_instance %}selected{% endif %}>
+                        {{ machine }} - ${{ cost }}/hr
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <input type="submit" value="Calculate">
+    </form>
+
+    <div class="results">
+        <p><strong>Spark Cost:</strong> $<span id="cloud_cost">0.00</span></p>
+        <p><strong>On-Prem Cost:</strong> $<span id="on_prem_cost">0.00</span></p>
+    </div>
+
+    <script>
+        // Helper function to format numbers with commas and two decimal places
+        const formatCurrency = (amount) => {
+            return Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        // Handle form submission and result update
+        const submitForm = (event) => {
+            event.preventDefault(); // Prevent default form submission behavior
+
+            const formData = $('#calculator-form').serialize(); // Serialize the form data
+
+            $.ajax({
+                type: 'POST',
+                url: '/calculate',
+                data: formData,
+                success: (response) => {
+                    // Format the results and update the UI
+                    $('#cloud_cost').text(formatCurrency(response.cloud_cost));
+                    $('#on_prem_cost').text(formatCurrency(response.on_prem_cost));
+                }
+            });
+        };
+
+        $(document).ready(() => {
+            $('#calculator-form').on('submit', submitForm); // Attach the submit handler
+        });
+    </script>
+</body>
+</html>

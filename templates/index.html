@@ -65,20 +65,6 @@
             color: white; /* White text for input fields */
         }
 
-        .form-group {
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .form-group label {
-            flex-basis: 35%;
-        }
-
-        .form-group input,
-        .form-group select {
-            flex-basis: 60%;
-        }
-
         /* Styling the calculate button */
         form input[type="submit"] {
             background-color: #af69f5; /* New purple color */
@@ -225,7 +211,7 @@
         <!-- Checkbox for SmartCompute inside the results section -->
         <div class="form-group">
             <label class="smartcompute-label" for="use_smart_compute">
-                <input type="checkbox" id="use_smart_compute" name="use_smart_compute">
+                <input type="checkbox" id="use_smart_compute" name="use_smart_compute" checked>
                 Use Spark SmartCompute™
             </label>
         </div>
@@ -239,54 +225,64 @@
         const formatCurrency = (amount) => {
             return Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
-    
+
+        // Function to update the cost dynamically
+        const updateCosts = (cloudCost, smartComputeEnabled) => {
+            let adjustedCloudCost = cloudCost;
+            if (smartComputeEnabled) {
+                adjustedCloudCost = cloudCost * 0.65; // Apply the 65% discount if SmartCompute is enabled
+            }
+            $('#cloud_cost').text(formatCurrency(adjustedCloudCost));
+        };
+
+        // Function to update the checkbox label color based on its state
+        const updateCheckboxLabelColor = (smartComputeEnabled) => {
+            if (smartComputeEnabled) {
+                $('.smartcompute-label').addClass('active'); // Change label to active color
+            } else {
+                $('.smartcompute-label').removeClass('active'); // Revert to default color
+            }
+        };
+
         // Handle form submission and result update
         const submitForm = (event) => {
             event.preventDefault(); // Prevent default form submission behavior
-    
-            // Uncheck the SmartCompute checkbox when the form is submitted
-            $('#use_smart_compute').prop('checked', false);
-    
-            // Remove the 'active' class to reset the color of the SmartCompute label
-            $('.smartcompute-label').removeClass('active'); 
-    
+
             const formData = $('#calculator-form').serialize(); // Serialize the form data
-    
+
             $.ajax({
                 type: 'POST',
                 url: '/calculate',
                 data: formData,
                 success: (response) => {
+                    // Get the SmartCompute checkbox state
+                    let smartComputeEnabled = $('#use_smart_compute').is(':checked');
+
                     // Format the results and update the UI
-                    $('#cloud_cost').text(formatCurrency(response.cloud_cost));
                     $('#on_prem_cost').text(formatCurrency(response.on_prem_cost));
-    
-                    // Add event listener for real-time toggling of the SmartCompute checkbox
+
+                    // Update cloud cost dynamically based on SmartCompute state
+                    updateCosts(response.cloud_cost, smartComputeEnabled);
+
+                    // Update the checkbox label color dynamically
+                    updateCheckboxLabelColor(smartComputeEnabled);
+
+                    // Ensure that the checkbox change event works dynamically
                     $('#use_smart_compute').on('change', function() {
-                        let smartComputeEnabled = $(this).is(':checked');
-                        let originalCloudCost = response.cloud_cost;
-    
-                        // Apply or remove the 65% discount for compile
-                        let adjustedCloudCost = originalCloudCost;
-                        if (smartComputeEnabled) {
-                            adjustedCloudCost = originalCloudCost * 0.65;
-                        }
-    
-                        $('#cloud_cost').text(formatCurrency(adjustedCloudCost));
-    
-                        // Change label color based on checkbox state
-                        if (smartComputeEnabled) {
-                            $('.smartcompute-label').addClass('active'); // Change to active color
-                        } else {
-                            $('.smartcompute-label').removeClass('active'); // Revert to default color
-                        }
+                        smartComputeEnabled = $(this).is(':checked');
+                        updateCosts(response.cloud_cost, smartComputeEnabled);
+                        updateCheckboxLabelColor(smartComputeEnabled);
                     });
                 }
             });
         };
-    
+
         $(document).ready(() => {
-            $('#calculator-form').on('submit', submitForm); // Attach the submit handler
+            // Attach the submit handler for form submissions
+            $('#calculator-form').on('submit', submitForm);
+
+            // Trigger the form submission to calculate costs immediately when the page loads
+            $('#calculator-form').trigger('submit');
         });
     </script>
     

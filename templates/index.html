@@ -11,14 +11,13 @@
     <style>
         /* Basic form styling */
         body {
-            font-family: 'Montserrat', sans-serif; /* Updated to Montserrat */
+            font-family: 'Montserrat', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #000000; /* Set the background to black */
-            color: white; /* Set the text color to white for visibility */
+            background-color: #000000;
+            color: white;
         }
 
-        /* Logo Styling */
         .logo-container {
             text-align: center;
             margin-top: 20px;
@@ -32,28 +31,33 @@
         h1 {
             text-align: center;
             margin-top: 10px;
-            color: #ffffff; /* Set header color to white */
+            color: #ffffff;
             font-size: 20px;
         }
 
         form {
-            background-color: #333333; /* Set the form background to dark gray */
+            background-color: #333333;
             max-width: 600px;
             margin: 20px auto;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); /* Light shadow */
-            border: 2px solid #af69f5; /* Add border around form */
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            border: 2px solid #af69f5;
         }
 
         form label {
             display: block;
             margin-bottom: 10px;
-            color: #ffffff; /* Set labels to white */
+            color: #ffffff;
             font-size: 14px;
         }
 
-        form input,
+        form input[type="range"] {
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
         form select {
             width: 100%;
             box-sizing: border-box;
@@ -61,156 +65,94 @@
             margin-bottom: 20px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            background-color: #444444; /* Darker input background */
-            color: white; /* White text for input fields */
-        }
-
-        /* Styling the calculate button */
-        form input[type="submit"] {
-            background-color: #af69f5; /* New purple color */
+            background-color: #444444;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            display: block;
-            margin: 20px auto;
-            border-radius: 25px; /* Fully rounded edges */
-            font-size: 16px;
-            width: 50%; /* Reduced width */
-        }
-
-        form input[type="submit"]:hover {
-            background-color: #b47ce9; /* New hover purple color */
-        }
-
-        /* Styling the results section */
-        h2 {
-            text-align: center;
-            color: #ffffff;
-            font-size: 24px;
         }
 
         .results {
             max-width: 600px;
             margin: 20px auto;
             padding: 20px;
-            background-color: #333333; /* Dark gray background for results */
+            background-color: #333333;
             border-radius: 8px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1); /* Light shadow */
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
             text-align: center;
-            border: 2px solid #af69f5; /* Add border around results */
+            border: 2px solid #af69f5;
         }
 
         .results p {
             font-size: 1.1em;
-            color: #ffffff; /* White text for results */
+            color: #ffffff;
             font-size: 18px;
         }
 
-        /* Checkbox label default and active styles */
         .smartcompute-label {
-            color: #af69f5; /* Default color when unchecked */
+            color: #af69f5;
             font-size: 16px;
-            transition: color 0.3s ease; /* Smooth transition */
+            transition: color 0.3s ease;
         }
 
         .smartcompute-label.active {
-            color: #edff79; /* Color when checked */
+            color: #edff79;
         }
 
-        /* Responsive design */
         @media (max-width: 600px) {
-            .form-group {
-                flex-direction: column;
-            }
-
-            .form-group label,
-            .form-group input,
-            .form-group select {
+            form label,
+            form input,
+            form select {
                 width: 100%;
-            }
-
-            form input[type="submit"] {
-                width: 100%; /* Full width on small screens */
             }
         }
     </style>
 </head>
 <body>
-
-    <!-- Logo container -->
     <div class="logo-container">
         <img src="{{ url_for('static', filename='spark-logo.png') }}" alt="Spark Cloud Studio Logo">
     </div>
 
     <h1>Spark vs On-Prem Cost Calculator</h1>
-    
+
     <form id="calculator-form">
         <div class="form-group">
-            <label for="num_devs">Number of Users</label>
-            <input type="number" id="num_devs" name="num_devs" value="16" required>
+            <label for="num_devs">Number of Users: <span id="num_devs_value">30</span></label>
+            <input type="range" id="num_devs" name="num_devs" min="1" max="100" value="30">
         </div>
 
         <div class="form-group">
-            <label for="on_prem_cost_per_dev">On-Prem Machine Cost/user</label>
-            <input type="number" id="on_prem_cost_per_dev" name="on_prem_cost_per_dev" value="35000" required>
+            <label for="on_prem_cost_per_dev">On-Prem Machine Cost/user: <span id="on_prem_cost_per_dev_value">6500</span></label>
+            <input type="range" id="on_prem_cost_per_dev" name="on_prem_cost_per_dev" min="5000" max="12000" step="100" value="6500">
         </div>
 
         <div class="form-group">
-            <label for="annual_maint_costs">On-Prem Annual Infrastructure Costs</label>
-            <input type="number" id="annual_maint_costs" name="annual_maint_costs" value="50000" required>
+            <label for="annual_maint_costs">On-Prem Annual Infrastructure Costs: <span id="annual_maint_costs_value">10000</span></label>
+            <input type="range" id="annual_maint_costs" name="annual_maint_costs" min="5000" max="30000" step="100" value="10000">
         </div>
 
         <div class="form-group">
-            <label for="coding_percentage">Coding %</label>
-            <input type="number" id="coding_percentage" name="coding_percentage" value="85" required>
+            <label for="hours_per_day">Work Hours/day: <span id="hours_per_day_value">8</span></label>
+            <input type="range" id="hours_per_day" name="hours_per_day" min="1" max="12" value="8">
         </div>
 
         <div class="form-group">
-            <label for="compile_percentage">Compiling %</label>
-            <input type="number" id="compile_percentage" name="compile_percentage" value="15" required>
+            <label for="days_per_year">Work Days/year: <span id="days_per_year_value">260</span></label>
+            <input type="range" id="days_per_year" name="days_per_year" min="28" max="365" value="260">
         </div>
 
         <div class="form-group">
-            <label for="hours_per_day">Work Hours/day</label>
-            <input type="number" id="hours_per_day" name="hours_per_day" value="16" required>
-        </div>
-
-        <div class="form-group">
-            <label for="days_per_year">Work Days/year</label>
-            <input type="number" id="days_per_year" name="days_per_year" value="365" required>
-        </div>
-
-        <div class="form-group">
-            <label for="coding_machine">Coding Instance</label>
-            <select id="coding_machine" name="coding_machine">
-                {% for machine, cost in coding_machines %}
-                    <option value="{{ machine }}" data-cost="{{ cost }}" {% if machine == default_coding_instance %}selected{% endif %}>
+            <label for="spark_prostation">Spark ProStation</label>
+            <select id="spark_prostation" name="spark_prostation">
+                {% for machine, cost in machine_options.items() %}
+                    <option value="{{ machine }}" {% if machine == default_machine %}selected{% endif %}>
                         {{ machine }} | ${{ cost }}/hr
                     </option>
                 {% endfor %}
             </select>
         </div>
-        
-        <div class="form-group">
-            <label for="compile_machine">Compiling Instance</label>
-            <select id="compile_machine" name="compile_machine">
-                {% for machine, cost in compile_machines %}
-                    <option value="{{ machine }}" data-cost="{{ cost }}" {% if machine == default_compile_instance %}selected{% endif %}>
-                        {{ machine }} | ${{ cost }}/hr
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-        
-
-        <input type="submit" value="Calculate">
     </form>
 
     <div class="results">
-        <!-- Checkbox for SmartCompute inside the results section -->
         <div class="form-group">
-            <label class="smartcompute-label" for="use_smart_compute">
+            <label class="smartcompute-label active" for="use_smart_compute">
                 <input type="checkbox" id="use_smart_compute" name="use_smart_compute" checked>
                 Use Spark SmartCompute™
             </label>
@@ -221,70 +163,52 @@
     </div>
 
     <script>
-        // Helper function to format numbers with commas and two decimal places
-        const formatCurrency = (amount) => {
-            return Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        };
+        const formatCurrency = (amount) => Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
 
-        // Function to update the cost dynamically
-        const updateCosts = (cloudCost, smartComputeEnabled) => {
-            let adjustedCloudCost = cloudCost;
-            if (smartComputeEnabled) {
-                adjustedCloudCost = cloudCost * 0.65; // Apply the 65% discount if SmartCompute is enabled
-            }
-            $('#cloud_cost').text(formatCurrency(adjustedCloudCost));
-        };
-
-        // Function to update the checkbox label color based on its state
-        const updateCheckboxLabelColor = (smartComputeEnabled) => {
-            if (smartComputeEnabled) {
-                $('.smartcompute-label').addClass('active'); // Change label to active color
-            } else {
-                $('.smartcompute-label').removeClass('active'); // Revert to default color
-            }
-        };
-
-        // Handle form submission and result update
-        const submitForm = (event) => {
-            event.preventDefault(); // Prevent default form submission behavior
-
-            const formData = $('#calculator-form').serialize(); // Serialize the form data
-
+        const calculateAndUpdate = (formData) => {
             $.ajax({
                 type: 'POST',
                 url: '/calculate',
                 data: formData,
                 success: (response) => {
-                    // Get the SmartCompute checkbox state
-                    let smartComputeEnabled = $('#use_smart_compute').is(':checked');
+                    let cloudCost = response.cloud_cost;
 
-                    // Format the results and update the UI
+                    const smartComputeEnabled = $('#use_smart_compute').is(':checked');
+                    if (smartComputeEnabled) {
+                        cloudCost *= 0.35;
+                    }
+
+                    $('#cloud_cost').text(formatCurrency(cloudCost));
                     $('#on_prem_cost').text(formatCurrency(response.on_prem_cost));
-
-                    // Update cloud cost dynamically based on SmartCompute state
-                    updateCosts(response.cloud_cost, smartComputeEnabled);
-
-                    // Update the checkbox label color dynamically
-                    updateCheckboxLabelColor(smartComputeEnabled);
-
-                    // Ensure that the checkbox change event works dynamically
-                    $('#use_smart_compute').on('change', function() {
-                        smartComputeEnabled = $(this).is(':checked');
-                        updateCosts(response.cloud_cost, smartComputeEnabled);
-                        updateCheckboxLabelColor(smartComputeEnabled);
-                    });
+                    $('.smartcompute-label').toggleClass('active', smartComputeEnabled);
                 }
             });
         };
 
-        $(document).ready(() => {
-            // Attach the submit handler for form submissions
-            $('#calculator-form').on('submit', submitForm);
+        const updateSliderValue = (sliderId, displayId) => {
+            $(`#${sliderId}`).on('input', function () {
+                $(`#${displayId}`).text($(this).val());
+            });
+        };
 
-            // Trigger the form submission to calculate costs immediately when the page loads
-            $('#calculator-form').trigger('submit');
+        $(document).ready(() => {
+            // Initialize the calculation
+            const formData = $('#calculator-form').serialize();
+            calculateAndUpdate(formData);
+
+            // Update slider display values dynamically
+            updateSliderValue('num_devs', 'num_devs_value');
+            updateSliderValue('on_prem_cost_per_dev', 'on_prem_cost_per_dev_value');
+            updateSliderValue('annual_maint_costs', 'annual_maint_costs_value');
+            updateSliderValue('hours_per_day', 'hours_per_day_value');
+            updateSliderValue('days_per_year', 'days_per_year_value');
+
+            // Trigger recalculations on slider or checkbox changes
+            $('input[type="range"], select, #use_smart_compute').on('input change', () => {
+                const updatedFormData = $('#calculator-form').serialize();
+                calculateAndUpdate(updatedFormData);
+            });
         });
     </script>
-    
 </body>
 </html>

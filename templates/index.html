@@ -47,7 +47,7 @@
 
         form label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             color: #ffffff;
             font-size: 14px;
         }
@@ -58,6 +58,19 @@
             margin-bottom: 20px.
         }
 
+        form select {
+            width: 100%;
+            padding: 10px;
+            background-color: #444444;
+            color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 10px; /* Adds space between sliders and next items */
+        }
+       
         .results {
             background-color: #333333;
             border: 2px solid #af69f5;
@@ -69,6 +82,9 @@
             text-align: center;
         }
 
+        .results canvas {
+            margin-bottom: 15px; /* Add space between the graph and the table */
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -99,7 +115,11 @@
         }
 
         th:nth-child(4) {
-            background-color: rgba(78, 147, 203, 0.75); /* Azure (Blue, 50%) */
+            background-color: rgba(0, 123, 255, 0.75); /* Google Drive (Blue) */
+        }
+
+        th:nth-child(5) {
+            background-color: rgba(249, 163, 29, 0.75); /* MediaShuttle (Orange) */
         }
 
         td#spark_cost {
@@ -107,9 +127,14 @@
             font-weight: bold; /* Bold Spark Price */
         }
 
+        .accent {
+            accent-color: #af69f5;
+        }
+
         @media (max-width: 600px) {
             form label,
-            form input {
+            form input,
+            form select {
                 width: 100%;
             }
         }
@@ -123,19 +148,26 @@
     <h1>Spark ShareSync Cost Calculator</h1>
 
     <form id="calculator-form">
+        <!-- Storage Size Slider -->
         <div class="form-group">
-            <label for="storage_size">Storage Size (GB): <span id="storage_size_value">10000</span></label>
-            <input type="range" id="storage_size" name="storage_size" min="1" max="500000" step="10" value="10000">
+            <label for="storage_size">Storage Size</label>
+            <span id="storage_size_value">1TB</span>
+            <input type="range" id="storage_size" name="storage_size" class="accent" min="0.1" max="100" step="0.1" value="1">
+        </div>
+
+        <!-- Data Transfer/Egress Slider -->
+        <div class="form-group">
+            <label for="data_egress">Data Download/Transfer/Egress</label>
+            <span id="data_egress_value">0.3TB</span>
+            <input type="range" id="data_egress" name="data_egress" class="accent" min="0.1" max="100" step="0.1" value="0.3">
         </div>
 
         <div class="form-group">
-            <label for="data_egress">Data Transfer/Egress (GB/month): <span id="data_egress_value">3000</span></label>
-            <input type="range" id="data_egress" name="data_egress" min="0" max="150000" step="10" value="3000">
-        </div>
-
-        <div class="form-group">
-            <label for="usage_duration">Usage Duration (Months): <span id="usage_duration_value">6</span></label>
-            <input type="range" id="usage_duration" name="usage_duration" min="1" max="36" value="6">
+            <label for="usage_duration">Usage Duration</label>
+            <select id="usage_duration" name="usage_duration">
+                <option value="1" selected>Per Month</option>
+                <option value="12">Per Year</option>
+            </select>
         </div>
     </form>
 
@@ -150,7 +182,8 @@
                     <th>Spark ShareSync</th>
                     <th>AWS</th>
                     <th>Google Cloud</th>
-                    <th>Azure</th>
+                    <th>Google Drive</th>
+                    <th>MediaShuttle</th>
                 </tr>
             </thead>
             <tbody>
@@ -158,7 +191,8 @@
                     <td id="spark_cost">$0.00</td>
                     <td id="aws_cost">$0.00</td>
                     <td id="gcp_cost">$0.00</td>
-                    <td id="azure_cost">$0.00</td>
+                    <td id="googledrive_cost">$0.00</td>
+                    <td id="mediashuttle_cost">$0.00</td>
                 </tr>
             </tbody>
         </table>
@@ -171,21 +205,16 @@
             const costChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Spark ShareSync', 'AWS', 'Google Cloud', 'Azure'],
+                    labels: ['Spark ShareSync', 'AWS', 'Google Cloud', 'Google Drive', 'MediaShuttle'],
                     datasets: [{
                         label: 'Cost ($)',
-                        data: [0, 0, 0, 0], // Default values
+                        data: [0, 0, 0, 0, 0],
                         backgroundColor: [
-                            '#af69f5', // Spark ShareSync (Purple)
-                            '#ff6363', // AWS S3 (Orange)
-                            '#4fbf6f', // Google Cloud (Green)
-                            '#4e93cb'  // Azure (Blue)
-                        ],
-                        borderColor: [
-                            '#af69f5',
-                            '#ff6363',
-                            '#4fbf6f',
-                            '#4e93cb'
+                            '#af69f5', /* Spark ShareSync */
+                            '#ff6363', /* AWS */
+                            '#4fbf6f', /* Google Cloud */
+                            '#007bff', /* Google Drive */
+                            '#f9a31d' /* MediaShuttle */
                         ],
                         borderWidth: 1
                     }]
@@ -217,7 +246,8 @@
                             response.spark_cost,
                             response.aws_cost,
                             response.gcp_cost,
-                            response.azure_cost
+                            response.googledrive_cost,
+                            response.mediashuttle_cost
                         ];
                         costChart.update();
 
@@ -225,7 +255,8 @@
                         $('#spark_cost').text(`$${response.spark_cost.toFixed(2)}`);
                         $('#aws_cost').text(`$${response.aws_cost.toFixed(2)}`);
                         $('#gcp_cost').text(`$${response.gcp_cost.toFixed(2)}`);
-                        $('#azure_cost').text(`$${response.azure_cost.toFixed(2)}`);
+                        $('#googledrive_cost').text(`$${response.googledrive_cost.toFixed(2)}`);
+                        $('#mediashuttle_cost').text(`$${response.mediashuttle_cost.toFixed(2)}`);
                     }
                 });
             };
@@ -233,20 +264,24 @@
             // Helper function to update slider display values
             const updateSliderValue = (sliderId, displayId) => {
                 $(`#${sliderId}`).on('input', function () {
-                    $(`#${displayId}`).text($(this).val());
+                    const value = $(this).val();
+                    if (sliderId === 'storage_size' || sliderId === 'data_egress') {
+                        $(`#${displayId}`).text(`${value}TB`);
+                    } else {
+                        $(`#${displayId}`).text(value);
+                    }
                 });
             };
 
             // Set up sliders to dynamically update labels
             updateSliderValue('storage_size', 'storage_size_value');
             updateSliderValue('data_egress', 'data_egress_value');
-            updateSliderValue('usage_duration', 'usage_duration_value');
 
             // Trigger calculation on page load
             calculateAndUpdate();
 
-            // Trigger calculation when sliders change
-            $('input[type="range"]').on('input', calculateAndUpdate);
+            // Trigger calculation when inputs change
+            $('input[type="range"], select').on('input change', calculateAndUpdate);
         });
     </script>
 </body>

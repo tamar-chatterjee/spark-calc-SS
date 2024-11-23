@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spark vs On-Prem Calculator</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spark ShareSync Cost Calculator</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Google Fonts: Montserrat -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-
     <style>
-        /* Basic form styling */
+        /* Basic styling */
         body {
             font-family: 'Montserrat', sans-serif;
             margin: 0;
@@ -55,51 +55,61 @@
         form input[type="range"] {
             width: 100%;
             box-sizing: border-box;
-            margin-bottom: 20px;
-        }
-
-        form select {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #444444;
-            color: white;
+            margin-bottom: 20px.
         }
 
         .results {
+            background-color: #333333;
+            border: 2px solid #af69f5;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
             max-width: 600px;
             margin: 20px auto;
             padding: 20px;
-            background-color: #333333;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
             text-align: center;
-            border: 2px solid #af69f5;
         }
 
-        .results p {
-            font-size: 1.1em;
-            color: #ffffff;
-            font-size: 18px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px.
         }
 
-        .smartcompute-label {
-            color: #af69f5;
-            font-size: 16px;
-            transition: color 0.3s ease;
+        th, td {
+            padding: 10px;
+            border: 1px solid #af69f5;
+            text-align: center.
         }
 
-        .smartcompute-label.active {
-            color: #edff79;
+        th {
+            color: rgba(15, 15, 15, 0.5);
+        }
+
+        th:nth-child(1) {
+            background-color: rgba(175, 105, 245, 0.85); /* Spark ShareSync (Purple, 50%) */
+            color: #edff79; /* Green text */
+        }
+
+        th:nth-child(2) {
+            background-color: rgba(255, 99, 99, 0.75); /* AWS (Orange, 50%) */
+        }
+
+        th:nth-child(3) {
+            background-color: rgba(79, 191, 111, 0.75); /* Google Cloud (Green, 50%) */
+        }
+
+        th:nth-child(4) {
+            background-color: rgba(78, 147, 203, 0.75); /* Azure (Blue, 50%) */
+        }
+
+        td#spark_cost {
+            color: #edff79; /* Green text for Spark */
+            font-weight: bold; /* Bold Spark Price */
         }
 
         @media (max-width: 600px) {
             form label,
-            form input,
-            form select {
+            form input {
                 width: 100%;
             }
         }
@@ -110,104 +120,133 @@
         <img src="{{ url_for('static', filename='spark-logo.png') }}" alt="Spark Cloud Studio Logo">
     </div>
 
-    <h1>Spark vs On-Prem Cost Calculator</h1>
+    <h1>Spark ShareSync Cost Calculator</h1>
 
     <form id="calculator-form">
         <div class="form-group">
-            <label for="num_devs">Number of Users: <span id="num_devs_value">30</span></label>
-            <input type="range" id="num_devs" name="num_devs" min="1" max="100" value="30">
+            <label for="storage_size">Storage Size (GB): <span id="storage_size_value">10000</span></label>
+            <input type="range" id="storage_size" name="storage_size" min="1" max="500000" step="10" value="10000">
         </div>
 
         <div class="form-group">
-            <label for="on_prem_cost_per_dev">On-Prem Machine Cost/user: $<span id="on_prem_cost_per_dev_value">6500</span></label>
-            <input type="range" id="on_prem_cost_per_dev" name="on_prem_cost_per_dev" min="5000" max="12000" step="100" value="6500">
+            <label for="data_egress">Data Transfer/Egress (GB/month): <span id="data_egress_value">3000</span></label>
+            <input type="range" id="data_egress" name="data_egress" min="0" max="150000" step="10" value="3000">
         </div>
 
         <div class="form-group">
-            <label for="annual_maint_costs">On-Prem Annual Infrastructure Costs: $<span id="annual_maint_costs_value">10000</span></label>
-            <input type="range" id="annual_maint_costs" name="annual_maint_costs" min="5000" max="30000" step="100" value="10000">
-        </div>
-
-        <div class="form-group">
-            <label for="hours_per_day">Work Hours/day: <span id="hours_per_day_value">8</span></label>
-            <input type="range" id="hours_per_day" name="hours_per_day" min="1" max="12" value="8">
-        </div>
-
-        <div class="form-group">
-            <label for="days_per_year">Work Days/year: <span id="days_per_year_value">260</span></label>
-            <input type="range" id="days_per_year" name="days_per_year" min="28" max="365" value="260">
-        </div>
-
-        <div class="form-group">
-            <label for="spark_prostation">Spark ProStation</label>
-            <select id="spark_prostation" name="spark_prostation">
-                {% for machine, cost in machine_options.items() %}
-                    <option value="{{ machine }}" {% if machine == default_machine %}selected{% endif %}>
-                        {{ machine }} | ${{ cost }}/hr
-                    </option>
-                {% endfor %}
-            </select>
+            <label for="usage_duration">Usage Duration (Months): <span id="usage_duration_value">12</span></label>
+            <input type="range" id="usage_duration" name="usage_duration" min="1" max="36" value="12">
         </div>
     </form>
 
     <div class="results">
-        <div class="form-group">
-            <label class="smartcompute-label active" for="use_smart_compute">
-                <input type="checkbox" id="use_smart_compute" name="use_smart_compute" checked>
-                Use Spark SmartCompute™
-            </label>
-        </div>
+        <!-- Bar Graph -->
+        <canvas id="costChart" style="max-width: 600px;"></canvas>
 
-        <p><strong>Spark Cost:</strong> $<span id="cloud_cost">0.00</span></p>
-        <p><strong>On-Prem Cost:</strong> $<span id="on_prem_cost">0.00</span></p>
+        <!-- Results Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Spark ShareSync</th>
+                    <th>AWS</th>
+                    <th>Google Cloud</th>
+                    <th>Azure</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="spark_cost">$0.00</td>
+                    <td id="aws_cost">$0.00</td>
+                    <td id="gcp_cost">$0.00</td>
+                    <td id="azure_cost">$0.00</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
     <script>
-        const formatCurrency = (amount) => Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 });
-
-        const calculateAndUpdate = (formData) => {
-            $.ajax({
-                type: 'POST',
-                url: '/calculate',
-                data: formData,
-                success: (response) => {
-                    let cloudCost = response.cloud_cost;
-
-                    const smartComputeEnabled = $('#use_smart_compute').is(':checked');
-                    if (smartComputeEnabled) {
-                        cloudCost *= 0.35;
+        $(document).ready(() => {
+            // Initialize Chart.js
+            const ctx = document.getElementById('costChart').getContext('2d');
+            const costChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Spark ShareSync', 'AWS', 'Google Cloud', 'Azure'],
+                    datasets: [{
+                        label: 'Cost ($)',
+                        data: [0, 0, 0, 0], // Default values
+                        backgroundColor: [
+                            '#af69f5', // Spark ShareSync (Purple)
+                            '#ff6363', // AWS S3 (Orange)
+                            '#4fbf6f', // Google Cloud (Green)
+                            '#4e93cb'  // Azure (Blue)
+                        ],
+                        borderColor: [
+                            '#af69f5',
+                            '#ff6363',
+                            '#4fbf6f',
+                            '#4e93cb'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     }
-
-                    $('#cloud_cost').text(formatCurrency(cloudCost));
-                    $('#on_prem_cost').text(formatCurrency(response.on_prem_cost));
-                    $('.smartcompute-label').toggleClass('active', smartComputeEnabled);
                 }
             });
-        };
 
-        const updateSliderValue = (sliderId, displayId) => {
-            $(`#${sliderId}`).on('input', function () {
-                $(`#${displayId}`).text($(this).val());
-            });
-        };
+            // Function to send form data and update results
+            const calculateAndUpdate = () => {
+                const formData = $('#calculator-form').serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '/calculate',
+                    data: formData,
+                    success: (response) => {
+                        // Update the chart data
+                        costChart.data.datasets[0].data = [
+                            response.spark_cost,
+                            response.aws_cost,
+                            response.gcp_cost,
+                            response.azure_cost
+                        ];
+                        costChart.update();
 
-        $(document).ready(() => {
-            // Initialize the calculation
-            const formData = $('#calculator-form').serialize();
-            calculateAndUpdate(formData);
+                        // Update the table values with dollar signs
+                        $('#spark_cost').text(`$${response.spark_cost.toFixed(2)}`);
+                        $('#aws_cost').text(`$${response.aws_cost.toFixed(2)}`);
+                        $('#gcp_cost').text(`$${response.gcp_cost.toFixed(2)}`);
+                        $('#azure_cost').text(`$${response.azure_cost.toFixed(2)}`);
+                    }
+                });
+            };
 
-            // Update slider display values dynamically
-            updateSliderValue('num_devs', 'num_devs_value');
-            updateSliderValue('on_prem_cost_per_dev', 'on_prem_cost_per_dev_value');
-            updateSliderValue('annual_maint_costs', 'annual_maint_costs_value');
-            updateSliderValue('hours_per_day', 'hours_per_day_value');
-            updateSliderValue('days_per_year', 'days_per_year_value');
+            // Helper function to update slider display values
+            const updateSliderValue = (sliderId, displayId) => {
+                $(`#${sliderId}`).on('input', function () {
+                    $(`#${displayId}`).text($(this).val());
+                });
+            };
 
-            // Trigger recalculations on slider or checkbox changes
-            $('input[type="range"], select, #use_smart_compute').on('input change', () => {
-                const updatedFormData = $('#calculator-form').serialize();
-                calculateAndUpdate(updatedFormData);
-            });
+            // Set up sliders to dynamically update labels
+            updateSliderValue('storage_size', 'storage_size_value');
+            updateSliderValue('data_egress', 'data_egress_value');
+            updateSliderValue('usage_duration', 'usage_duration_value');
+
+            // Trigger calculation on page load
+            calculateAndUpdate();
+
+            // Trigger calculation when sliders change
+            $('input[type="range"]').on('input', calculateAndUpdate);
         });
     </script>
 </body>

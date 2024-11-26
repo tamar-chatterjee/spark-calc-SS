@@ -35,11 +35,19 @@ def calculate():
     mediashuttle_total_cost = mediashuttle_storage_cost + mediashuttle_egress_cost
 
     # Google Drive pricing logic
-    googledrive_cost = None  # Default as None (for when over 2TB)
+    googledrive_cost = None  # Default as None (for when over 30TB)
     if storage_size_tb <= 0.2:
         googledrive_cost = 2.99 * usage_duration
     elif 0.2 < storage_size_tb <= 2:
-        googledrive_cost = 150 * usage_duration
+        googledrive_cost = 9.99 * usage_duration
+    elif 2 < storage_size_tb <= 5:
+        googledrive_cost = 24.99 * usage_duration
+    elif 5 < storage_size_tb <= 10:
+        googledrive_cost = 49.99 * usage_duration
+    elif 10 < storage_size_tb <= 20:
+        googledrive_cost = 99.99 * usage_duration
+    elif 20 < storage_size_tb <= 30:
+        googledrive_cost = 149.99 * usage_duration
 
     # Dropbox pricing logic
     dropbox_cost = None  # Default as None (for when over 3TB)

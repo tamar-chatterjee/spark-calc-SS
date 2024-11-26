@@ -50,11 +50,19 @@ def calculate():
         googledrive_cost = 149.99 * usage_duration
 
     # Dropbox pricing logic
-    dropbox_cost = None  # Default as None (for when over 3TB)
+    dropbox_cost = 0  # Initialize to 0 for calculations
     if storage_size_tb <= 2:
         dropbox_cost = 11.99 * usage_duration
     elif 2 < storage_size_tb <= 3:
         dropbox_cost = 19.99 * usage_duration
+    elif 3 < storage_size_tb <= 15:
+        dropbox_cost = 54.00 * usage_duration
+    else:
+        # For every additional 5TB above 15TB, add $30
+        additional_tb = storage_size_tb - 15
+        additional_cost = (additional_tb // 5) * 30
+        dropbox_cost = (90 + additional_cost) * usage_duration
+
 
     # Total costs
     spark_total_cost = spark_storage_cost + spark_egress_cost

@@ -55,7 +55,7 @@
         form input[type="range"] {
             width: 100%;
             box-sizing: border-box;
-            margin-bottom: 20px.
+            margin-bottom: 20px;
         }
 
         form select {
@@ -68,9 +68,9 @@
         }
 
         .form-group {
-            margin-bottom: 10px; /* Adds space between sliders and next items */
+            margin-bottom: 10px;
         }
-       
+
         .results {
             background-color: #333333;
             border: 2px solid #af69f5;
@@ -83,48 +83,72 @@
         }
 
         .results canvas {
-            margin-bottom: 15px; /* Add space between the graph and the table */
+            margin-bottom: 15px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px.
+            margin-top: 20px;
         }
 
         th, td {
             padding: 10px;
             border: 1px solid #af69f5;
-            text-align: center.
+            text-align: center;
         }
 
         th {
+            font-size: 70%;
             color: rgba(15, 15, 15, 0.5);
         }
 
         th:nth-child(1) {
-            background-color: rgba(175, 105, 245, 0.85); /* Spark ShareSync (Purple, 50%) */
-            color: #edff79; /* Green text */
+            background-color: rgba(175, 105, 245, 0.85);
+            color: #edff79;
+            font-weight: bold;
+        }
+
+        th:not(:nth-child(1)) {
+            font-weight: normal;
         }
 
         th:nth-child(2) {
-            background-color: rgba(255, 99, 99, 0.75); /* AWS (Orange, 50%) */
+            background-color: rgba(255, 99, 99, 0.75);
         }
 
         th:nth-child(3) {
-            background-color: rgba(79, 191, 111, 0.75); /* Google Cloud (Green, 50%) */
+            background-color: rgba(79, 191, 111, 0.75);
         }
 
         th:nth-child(4) {
-            background-color: rgba(0, 123, 255, 0.75); /* Google Drive (Blue) */
+            background-color: #f9a31d;
         }
 
         th:nth-child(5) {
-            background-color: rgba(249, 163, 29, 0.75); /* MediaShuttle (Orange) */
+            background-color: #2f704f;
+        }
+
+        th:nth-child(6) {
+            background-color: #007bff;
+        }
+
+        th.dropbox-na, th.google-drive-na {
+            background-color: #808080 !important;
+        }
+
+        td.na-cell {
+            background-color: #808080;
+            color: #ff0000;
+            font-weight: bold;
         }
 
         td#spark_cost {
-            color: #edff79; /* Green text for Spark */
-            font-weight: bold; /* Bold Spark Price */
+            color: #edff79;
+            font-weight: bold;
+        }
+        td {
+            font-size: 75%; /* Adjusted font size for result numbers */
         }
 
         .accent {
@@ -148,20 +172,16 @@
     <h1>Spark ShareSync Cost Calculator</h1>
 
     <form id="calculator-form">
-        <!-- Storage Size Slider -->
         <div class="form-group">
             <label for="storage_size">Storage Size</label>
             <span id="storage_size_value">1TB</span>
             <input type="range" id="storage_size" name="storage_size" class="accent" min="0.1" max="100" step="0.1" value="1">
         </div>
-
-        <!-- Data Transfer/Egress Slider -->
         <div class="form-group">
             <label for="data_egress">Data Download/Transfer/Egress</label>
             <span id="data_egress_value">0.3TB</span>
             <input type="range" id="data_egress" name="data_egress" class="accent" min="0.1" max="100" step="0.1" value="0.3">
         </div>
-
         <div class="form-group">
             <label for="usage_duration">Usage Duration</label>
             <select id="usage_duration" name="usage_duration">
@@ -172,18 +192,16 @@
     </form>
 
     <div class="results">
-        <!-- Bar Graph -->
         <canvas id="costChart" style="max-width: 600px;"></canvas>
-
-        <!-- Results Table -->
         <table>
             <thead>
                 <tr>
                     <th>Spark ShareSync</th>
                     <th>AWS</th>
                     <th>Google Cloud</th>
-                    <th>Google Drive</th>
                     <th>MediaShuttle</th>
+                    <th id="google-drive-heading" class="google-drive">Google Drive</th>
+                    <th id="dropbox-heading" class="dropbox">Dropbox</th>
                 </tr>
             </thead>
             <tbody>
@@ -191,8 +209,9 @@
                     <td id="spark_cost">$0.00</td>
                     <td id="aws_cost">$0.00</td>
                     <td id="gcp_cost">$0.00</td>
-                    <td id="googledrive_cost">$0.00</td>
                     <td id="mediashuttle_cost">$0.00</td>
+                    <td id="googledrive_cost">$0.00</td>
+                    <td id="dropbox_cost">$0.00</td>
                 </tr>
             </tbody>
         </table>
@@ -200,89 +219,146 @@
 
     <script>
         $(document).ready(() => {
-            // Initialize Chart.js
             const ctx = document.getElementById('costChart').getContext('2d');
+    
+            const iconUrls = [
+                '/static/icons/spark.png',
+                '/static/icons/aws.png',
+                '/static/icons/google-cloud.png',
+                '/static/icons/mediashuttle.png',
+                '/static/icons/google-drive.png',
+                '/static/icons/dropbox.png'
+            ];
+    
+            const iconImages = iconUrls.map(url => {
+                const img = new Image();
+                img.src = url;
+                return img;
+            });
+    
             const costChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Spark ShareSync', 'AWS', 'Google Cloud', 'Google Drive', 'MediaShuttle'],
+                    labels: ['', '', '', '', '', ''], // Empty labels for icon replacement
                     datasets: [{
                         label: 'Cost ($)',
-                        data: [0, 0, 0, 0, 0],
-                        backgroundColor: [
-                            '#af69f5', /* Spark ShareSync */
-                            '#ff6363', /* AWS */
-                            '#4fbf6f', /* Google Cloud */
-                            '#007bff', /* Google Drive */
-                            '#f9a31d' /* MediaShuttle */
-                        ],
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#af69f5', '#ff6363', '#4fbf6f', '#f9a31d', '#2f704f', '#007bff'],
                         borderWidth: 1
                     }]
                 },
                 options: {
+                    layout: {
+                        padding: {
+                            bottom: 30 // Add extra space for icons below the chart
+                        }
+                    },
                     scales: {
+                        x: {
+                            ticks: { display: false }, // Hide default x-axis labels
+                            grid: { drawOnChartArea: false }
+                        },
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: false
-                        }
+                        legend: { display: false },
+                        tooltip: { enabled: true }
                     }
-                }
+                },
+                plugins: [{
+                    afterDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const xAxis = chart.scales.x;
+                        const yAxis = chart.scales.y;
+    
+                        iconImages.forEach((img, index) => {
+                            const x = xAxis.getPixelForTick(index) - 15; // Center icons horizontally
+                            const y = yAxis.bottom + 5; // Position icons below the chart
+                            ctx.drawImage(img, x, y, 30, 30); // Resize icons as needed
+                        });
+                    }
+                }]
             });
-
-            // Function to send form data and update results
+    
+            // Update slider labels dynamically
+            const updateSliderLabels = () => {
+                const storageValue = $('#storage_size').val();
+                const egressValue = $('#data_egress').val();
+    
+                // Update slider labels
+                $('#storage_size_value').text(`${storageValue}TB`);
+                $('#data_egress_value').text(`${egressValue}TB`);
+            };
+    
             const calculateAndUpdate = () => {
                 const formData = $('#calculator-form').serialize();
                 $.ajax({
                     type: 'POST',
                     url: '/calculate',
                     data: formData,
-                    success: (response) => {
-                        // Update the chart data
+                    success: response => {
+                        const dropboxValue = response.dropbox_cost !== null ? response.dropbox_cost : 0;
+                        const googleDriveValue = response.googledrive_cost !== null ? response.googledrive_cost : 0;
+    
                         costChart.data.datasets[0].data = [
                             response.spark_cost,
                             response.aws_cost,
                             response.gcp_cost,
-                            response.googledrive_cost,
-                            response.mediashuttle_cost
+                            response.mediashuttle_cost,
+                            googleDriveValue,
+                            dropboxValue
                         ];
+    
                         costChart.update();
-
-                        // Update the table values with dollar signs
+    
+                        // Update table values
                         $('#spark_cost').text(`$${response.spark_cost.toFixed(2)}`);
                         $('#aws_cost').text(`$${response.aws_cost.toFixed(2)}`);
                         $('#gcp_cost').text(`$${response.gcp_cost.toFixed(2)}`);
-                        $('#googledrive_cost').text(`$${response.googledrive_cost.toFixed(2)}`);
                         $('#mediashuttle_cost').text(`$${response.mediashuttle_cost.toFixed(2)}`);
+    
+                        const googleDriveCell = $('#googledrive_cost');
+                        const dropboxCell = $('#dropbox_cost');
+    
+                        if (response.googledrive_cost !== null) {
+                            googleDriveCell.text(`$${response.googledrive_cost.toFixed(2)}`);
+                            googleDriveCell.removeClass('na-cell');
+                            $('#google-drive-heading').removeClass('google-drive-na');
+                        } else {
+                            googleDriveCell.text('X');
+                            googleDriveCell.addClass('na-cell');
+                            $('#google-drive-heading').addClass('google-drive-na');
+                        }
+    
+                        if (response.dropbox_cost !== null) {
+                            dropboxCell.text(`$${response.dropbox_cost.toFixed(2)}`);
+                            dropboxCell.removeClass('na-cell');
+                            $('#dropbox-heading').removeClass('dropbox-na');
+                        } else {
+                            dropboxCell.text('X');
+                            dropboxCell.addClass('na-cell');
+                            $('#dropbox-heading').addClass('dropbox-na');
+                        }
                     }
                 });
             };
-
-            // Helper function to update slider display values
-            const updateSliderValue = (sliderId, displayId) => {
-                $(`#${sliderId}`).on('input', function () {
-                    const value = $(this).val();
-                    if (sliderId === 'storage_size' || sliderId === 'data_egress') {
-                        $(`#${displayId}`).text(`${value}TB`);
-                    } else {
-                        $(`#${displayId}`).text(value);
-                    }
-                });
-            };
-
-            // Set up sliders to dynamically update labels
-            updateSliderValue('storage_size', 'storage_size_value');
-            updateSliderValue('data_egress', 'data_egress_value');
-
-            // Trigger calculation on page load
+    
+            // Attach event listeners for slider changes
+            $('#storage_size, #data_egress').on('input change', () => {
+                updateSliderLabels();
+                calculateAndUpdate();
+            });
+    
+            // Attach event listener for the dropdown
+            $('#usage_duration').on('change', calculateAndUpdate);
+    
+            // Initial page load
+            updateSliderLabels();
             calculateAndUpdate();
-
-            // Trigger calculation when inputs change
-            $('input[type="range"], select').on('input change', calculateAndUpdate);
         });
     </script>
+    
 </body>
 </html>

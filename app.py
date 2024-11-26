@@ -30,15 +30,23 @@ def calculate():
     azure_storage_cost = 0.0184 * storage_size_gb * usage_duration
     azure_egress_cost = 0.087 * data_egress_gb * usage_duration
 
-    # MediaShuttle costs
     mediashuttle_storage_cost = 0.10 * storage_size_gb * usage_duration
     mediashuttle_egress_cost = 0.05 * data_egress_gb * usage_duration
     mediashuttle_total_cost = mediashuttle_storage_cost + mediashuttle_egress_cost
 
-    # Google Drive costs
-    googledrive_storage_cost = 0.04 * storage_size_gb * usage_duration
-    googledrive_egress_cost = 0.08 * data_egress_gb * usage_duration
-    googledrive_total_cost = googledrive_storage_cost + googledrive_egress_cost
+    # Google Drive pricing logic
+    googledrive_cost = None  # Default as None (for when over 2TB)
+    if storage_size_tb <= 0.2:
+        googledrive_cost = 2.99 * usage_duration
+    elif 0.2 < storage_size_tb <= 2:
+        googledrive_cost = 150 * usage_duration
+
+    # Dropbox pricing logic
+    dropbox_cost = None  # Default as None (for when over 3TB)
+    if storage_size_tb <= 2:
+        dropbox_cost = 11.99 * usage_duration
+    elif 2 < storage_size_tb <= 3:
+        dropbox_cost = 19.99 * usage_duration
 
     # Total costs
     spark_total_cost = spark_storage_cost + spark_egress_cost
@@ -52,7 +60,8 @@ def calculate():
         'gcp_cost': gcp_total_cost,
         'azure_cost': azure_total_cost,
         'mediashuttle_cost': mediashuttle_total_cost,
-        'googledrive_cost': googledrive_total_cost
+        'googledrive_cost': googledrive_cost,
+        'dropbox_cost': dropbox_cost
     })
 
 if __name__ == '__main__':

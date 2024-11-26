@@ -18,8 +18,30 @@ def calculate():
     data_egress_gb = data_egress_tb * 1024
 
     # Pricing details (per GB)
-    spark_storage_cost = 0.013 * storage_size_gb * usage_duration
+    # Spark pricing with discount logic
+    spark_base_cost_per_gb = 0.013 * usage_duration  # Base cost per GB
+    spark_base_cost = spark_base_cost_per_gb * storage_size_gb  # Base cost without discount
+
+    # Apply discount: ramp up from 0% at 0.1TB to 60% at 2TB
+    if storage_size_tb > 0.1:
+        max_discount = 0.65  # 65% discount
+        discount_ramp_start = 0.1  # Start discount ramp at 0.2TB
+        discount_ramp_end = 2.0  # End discount ramp at 2TB
+
+        # Calculate discount percentage linearly based on storage size
+        discount_percentage = min(
+            max_discount,
+            (storage_size_tb - discount_ramp_start) / (discount_ramp_end - discount_ramp_start) * max_discount
+        )
+
+        spark_discounted_cost = spark_base_cost * (1 - discount_percentage)  # Apply discount
+    else:
+        spark_discounted_cost = spark_base_cost  # No discount below 0.2TB
+
+    # Use spark_discounted_cost for the Spark total cost
+
     spark_egress_cost = 0  # Spark has no egress fee
+    spark_total_cost = spark_discounted_cost + spark_egress_cost
 
     aws_storage_cost = 0.023 * storage_size_gb * usage_duration
     aws_egress_cost = 0.09 * data_egress_gb * usage_duration
@@ -30,9 +52,17 @@ def calculate():
     azure_storage_cost = 0.0184 * storage_size_gb * usage_duration
     azure_egress_cost = 0.087 * data_egress_gb * usage_duration
 
-    mediashuttle_storage_cost = 0.10 * storage_size_gb * usage_duration
-    mediashuttle_egress_cost = 0.05 * data_egress_gb * usage_duration
+    # Mediashuttle pricing logic
+    if storage_size_tb <= 25:
+        mediashuttle_storage_cost = 0.0284 * storage_size_gb * usage_duration  # $0.0284/GB/month
+        mediashuttle_egress_cost = 0  # No egress fee up to 25TB
+    else:
+        mediashuttle_storage_cost = 0.021 * storage_size_gb * usage_duration  # $0.021/GB/month beyond 25TB
+        mediashuttle_egress_cost = 0.09 * data_egress_gb * usage_duration  # $0.09/GB/month egress fee
+
+    # Total Mediashuttle cost
     mediashuttle_total_cost = mediashuttle_storage_cost + mediashuttle_egress_cost
+
 
     # Google Drive pricing logic
     googledrive_cost = None  # Default as None (for when over 30TB)
@@ -65,7 +95,7 @@ def calculate():
 
 
     # Total costs
-    spark_total_cost = spark_storage_cost + spark_egress_cost
+    spark_total_cost = spark_discounted_cost + spark_egress_cost
     aws_total_cost = aws_storage_cost + aws_egress_cost
     gcp_total_cost = gcp_storage_cost + gcp_egress_cost
     azure_total_cost = azure_storage_cost + azure_egress_cost
